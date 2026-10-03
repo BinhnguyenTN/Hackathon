@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Closet AI — Scan & Organize</title>
+  <meta name="description" content="Upload or scan clothing and turn it into an organized digital closet." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">C</span><span>Closet AI</span></a>
+    <nav>
+      <a href="#scan">Add clothes</a>
+      <a href="#closet">My closet</a>
+    </nav>
+    <button class="avatar" aria-label="Profile">B</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">YOUR DIGITAL WARDROBE</p>
+        <h1>Turn what you wear<br><em>into your closet.</em></h1>
+        <p class="hero-copy">Snap a photo of clothing you're wearing or hanging, or upload a picture. Closet AI isolates the item and organizes it for you.</p>
+        <div class="hero-actions">
+          <button class="primary" id="openUpload">＋ Add clothing</button>
+          <button class="secondary" id="openCamera">◎ Scan with camera</button>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="hanger hanger-1">◇</div>
+        <div class="hanger hanger-2">◇</div>
+        <div class="shirt-shape"> </div>
+      </div>
+    </section>
+
+    <section class="stats" id="closet">
+      <div><strong id="itemCount">0</strong><span>items</span></div>
+      <div><strong id="categoryCount">0</strong><span>categories</span></div>
+      <div><strong>AI</strong><span>auto-tagging</span></div>
+    </section>
+
+    <section class="closet-section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">YOUR CLOSET</p>
+          <h2>Everything, organized.</h2>
+        </div>
+        <select id="categoryFilter" aria-label="Filter by category">
+          <option value="All">All items</option>
+          <option value="Tops">Tops</option>
+          <option value="Bottoms">Bottoms</option>
+          <option value="Dresses">Dresses</option>
+          <option value="Outerwear">Outerwear</option>
+          <option value="Shoes">Shoes</option>
+          <option value="Accessories">Accessories</option>
+        </select>
+      </div>
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">＋</div>
+        <h3>Your closet is waiting.</h3>
+        <p>Add your first piece by uploading a photo or scanning it with your camera.</p>
+        <button class="text-button" id="emptyAdd">Add your first item →</button>
+      </div>
+      <div class="clothes-grid" id="clothesGrid"></div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+    <div class="modal-card">
+      <button class="close" data-close="uploadModal">×</button>
+      <p class="eyebrow">ADD TO CLOSET</p>
+      <h2 id="uploadTitle">Choose a photo</h2>
+      <p class="muted">For best results, use a clear photo with the garment visible.</p>
+      <label class="dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept="image/*" />
+        <span class="upload-icon">↑</span>
+        <strong>Drop an image here</strong>
+        <span>or click to browse</span>
+      </label>
+      <button class="secondary full" id="modalCamera">Use camera instead</button>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="cameraModal" role="dialog" aria-modal="true" aria-labelledby="cameraTitle">
+    <div class="modal-card camera-card">
+      <button class="close" data-close="cameraModal">×</button>
+      <p class="eyebrow">LIVE SCAN</p>
+      <h2 id="cameraTitle">Frame your clothing</h2>
+      <p class="muted">Center the garment in the frame. We’ll capture a still for extraction.</p>
+      <div class="camera-frame">
+        <video id="cameraVideo" autoplay playsinline></video>
+        <div class="scan-corners"></div>
+      </div>
+      <div class="camera-actions">
+        <button class="secondary" id="stopCamera">Cancel</button>
+        <button class="primary" id="capturePhoto">Capture & extract</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="processingModal" role="dialog" aria-modal="true">
+    <div class="modal-card processing">
+      <div class="spinner"></div>
+      <p class="eyebrow">AI CLOSET</p>
+      <h2>Extracting your garment…</h2>
+      <p class="muted" id="processingText">Removing the background and detecting clothing details.</p>
+      <div class="progress"><span id="progressBar"></span></div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <div class="modal-card">
+      <button class="close" data-close="editModal">×</button>
+      <p class="eyebrow">NEW CLOSET ITEM</p>
+      <h2 id="editTitle">Review the item</h2>
+      <div class="preview-wrap"><img id="previewImage" alt="Extracted clothing preview"></div>
+      <div class="form-grid">
+        <label>Name<input id="itemName" value="New garment"></label>
+        <label>Category
+          <select id="itemCategory">
+            <option>Tops</option><option>Bottoms</option><option>Dresses</option>
+            <option>Outerwear</option><option>Shoes</option><option>Accessories</option>
+          </select>
+        </label>
+        <label>Color<input id="itemColor" value="Neutral"></label>
+        <label>Season
+          <select id="itemSeason"><option>All season</option><option>Spring</option><option>Summer</option><option>Fall</option><option>Winter</option></select>
+        </label>
+      </div>
+      <button class="primary full" id="saveItem">Save to closet</button>
+    </div>
+  </div>
+
+  <template id="itemTemplate">
+    <article class="clothing-card">
+      <div class="card-image"><img alt=""></div>
+      <div class="card-info">
+        <div><h3></h3><span class="tag"></span></div>
+        <button class="delete" aria-label="Delete item">×</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
